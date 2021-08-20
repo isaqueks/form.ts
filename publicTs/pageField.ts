@@ -35,7 +35,7 @@ export default class PageField extends VirtualElement<HTMLInputElement> {
 
     public validate(): IsFieldValid {
         const element = this.getElement();
-        return this.validateFn ? this.validateFn(element.value, element) : {
+        return this.validateFn ? this.validateFn(this.getValue(), element) : {
             valid: true,
             invalidReason: null
         };
