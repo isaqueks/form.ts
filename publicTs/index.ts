@@ -48,22 +48,18 @@ const page2 = new PageElement(2, 'page2', 'Account info', [
 ], true);
 
 page1.on('next', (data) => {
-    const valid = page1.validate();
-    for (let v of valid) {
-        if (!v.valid) {
-            return alert(v.invalidReason);
-        }
+    const err = page1.getValidationError();
+    if (err) {
+        return alert(err);
     }
     Pages.next();
 })
 
 page2.on('back', () => Pages.back())
 page2.on('next', () => {
-    const valid = page2.validate();
-    for (let v of valid) {
-        if (!v.valid) {
-            return alert(v.invalidReason);
-        }
+    const err = page2.getValidationError();
+    if (err) {
+        return alert(err);
     }
     alert('Account created!');
 })

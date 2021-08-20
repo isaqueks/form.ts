@@ -139,4 +139,17 @@ export default class PageElement extends VirtualElement<HTMLSelectElement> {
         });
     }
 
+    /**
+     * @returns The reason of the validation or null if there isn't none
+     */
+    public getValidationError(): string {
+        const validation = this.validate();
+        for (let val of validation) {
+            if (!val.valid) {
+                return val.invalidReason || '';
+            }
+        }
+        return null;
+    }
+
 }
