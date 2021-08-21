@@ -1,68 +1,139 @@
+import ValidationResult, { FieldValidation } from "./isFieldValid";
 import PageElement from "./page";
 import PageField from "./pageField";
 import Pages from "./pages";
 
-const page1 = new PageElement(1, 'page1', 'Personal data', [
-    new PageField('name', 'Type your name', name => {
+class NameField extends PageField<string> {
 
-        const isValid = name.length > 4
+    override getOutputValue() {
+        return this.getValue();
+    }
 
-        return {
-            valid: isValid,
-            invalidReason: isValid ? '' : 'Name too short!'
-        }
-    }),
-    new PageField('age', 'Type your age', age => {
+    override validateField(): ValidationResult {
+        return FieldValidation.validIf(this.getValue().trim().length > 4, 'Name too short')
+    }
 
-        const ageNum = Number(age);
-        const isValid = !Number.isNaN(ageNum) && ageNum > 0 && ageNum < 120
+}
 
-        return {
-            valid: isValid,
-            invalidReason: isValid ? '' : 'Invalid age!'
-        }
-    })
-], false, ['page-focused']);
+class AgeField extends PageField<number> {
 
-const page2 = new PageElement(2, 'page2', 'Account info', [
-    new PageField('email', 'Type your email address', email => {
+    override afterConstruct() {
+        this.setAttribute('type', 'number');
+    }
 
-        // Very stupid validation, but just for demonstration
-        const isValid = email.length > 4 && email.includes('@')
 
-        return {
-            valid: isValid,
-            invalidReason: isValid ? '' : 'Invalid e-mail address'
-        }
-    }),
-    new PageField('passowrd', 'Create a password', password => {
-        const isValid = password.trim().length > 4
+    override getOutputValue() {
+        return Number(this.getValue());
+    }
 
-        return {
-            valid: isValid,
-            invalidReason: isValid ? '' : 'Password too short!'
-        }
-    }, [], {
-        type: 'password'
-    })
+    override validateField(): ValidationResult {
+
+        const value = this.getValue();
+        const valueNum = Number(value);
+
+        return FieldValidation.invalidOne(
+            FieldValidation.validIf(!Number.isNaN(valueNum), 'Invalid number'),
+            FieldValidation.validIf(valueNum > 0, 'Expected positive number'),
+            FieldValidation.validIf(valueNum < 120, 'Age too high')
+        );
+    }
+
+}
+
+class EmailField extends PageField<string> {
+
+    override afterConstruct() {
+        this.setAttribute('type', 'email');
+    }
+
+    override getOutputValue() {
+        return this.getValue();
+    }
+
+    override validateField(): ValidationResult {
+
+        const value = this.getValue().trim();
+
+        // Very stupid email validation,
+        // but only for demo purposes
+        return FieldValidation.invalidOne(
+            FieldValidation.validIf(value.length > 4, 'Invalid email address'),
+            FieldValidation.validIf(value.includes('@'), 'Expected @'),
+            FieldValidation.validIf(value.includes('.'), 'Expected a .')
+        );
+    }
+
+}
+
+class PasswordField extends PageField<string> {
+
+    override afterConstruct() {
+        this.setAttribute('type', 'password');
+    }
+
+
+    override getOutputValue() {
+        return this.getValue();
+    }
+
+    override validateField(): ValidationResult {
+        return FieldValidation.validIf(this.getValue().trim().length >= 8, 'Password too short')
+    }
+
+}
+
+interface UserInfo {
+    name: string;
+    age: number;
+}
+
+interface UserLogin {
+    email: string;
+    password: string;
+}
+
+const userInfoPage = new PageElement<UserInfo>(1, 'page1', 'Personal data', [
+    new NameField('name', 'Type your name'),
+    new AgeField('age', 'Type your age')
+], false);
+
+const loginPage = new PageElement<UserLogin>(2, 'page2', 'Account info', [
+    new EmailField('email', 'Type your email address'),
+    new PasswordField('password', 'Create a password')
 ], true);
 
-page1.on('next', (data) => {
-    const err = page1.getValidationError();
-    if (err) {
-        return alert(err);
+userInfoPage.on('next', (data) => {
+    const invalid = userInfoPage.getValidationError();
+    if (invalid) {
+        return alert(invalid);
     }
+
     Pages.next();
 })
 
-page2.on('back', () => Pages.back())
-page2.on('next', () => {
-    const err = page2.getValidationError();
-    if (err) {
-        return alert(err);
+loginPage.on('back', () => Pages.back())
+loginPage.on('next', () => {
+    const invalid = loginPage.getValidationError();
+    if (invalid) {
+        return alert(invalid);
     }
-    alert('Account created!');
+
+    const userInfo = userInfoPage.getOutput();
+    const loginInfo = loginPage.getOutput();
+
+    console.log('Output: ', userInfo, loginInfo);
+    
+
+    alert(
+        'Account created!\n'+
+        'User data:\n'+
+        `User name: ${userInfo.name}\n` +
+        `User age: ${userInfo.age}\n` +
+        'Login data:\n' +
+        `Email: ${loginInfo.email}\n` + 
+        `Password: ****${loginInfo.password.substring(4)}`
+    );
 })
 
-page1.buildTo(document.querySelector('#root'));
-page2.buildTo(document.querySelector('#root'))
+userInfoPage.buildTo(document.querySelector('#root'));
+loginPage.buildTo(document.querySelector('#root'))

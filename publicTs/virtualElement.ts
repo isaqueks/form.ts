@@ -15,12 +15,12 @@ export default class VirtualElement<ElementType extends HTMLElement> {
         this.virtualEvents = [];
     }
 
-    public getElement(): ElementType {
+    public getDomElement(): ElementType {
         return this.element || null;
     }
 
     public getAttribute(attr: string): string {
-        const element = this.getElement();
+        const element = this.getDomElement();
         if (!element) {
             const vAttr = this.attributes[attr];
             return vAttr == undefined ? null : vAttr;
@@ -29,7 +29,7 @@ export default class VirtualElement<ElementType extends HTMLElement> {
     }
 
     public setAttribute(attr: string, value: string) {
-        const element = this.getElement();
+        const element = this.getDomElement();
         if (element) {
             element.setAttribute(attr, value)
         }
@@ -37,7 +37,7 @@ export default class VirtualElement<ElementType extends HTMLElement> {
     }
 
     public on(eventName: string, listener: EventListener) {
-        const element = this.getElement();
+        const element = this.getDomElement();
         
         this.virtualEvents.push({
             evName: eventName,
@@ -73,7 +73,7 @@ export default class VirtualElement<ElementType extends HTMLElement> {
         this.cssClasses.forEach(className => this.element.classList.add(className));
 
         this.afterElementBuilt();
-        return this.getElement();
+        return this.getDomElement();
     }
 
     public fireEvent(eventName: string, data: Event) {

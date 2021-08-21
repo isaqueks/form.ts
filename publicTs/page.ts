@@ -1,4 +1,5 @@
-import PageField, { IsFieldValid } from "./pageField";
+import ValidationResult from "./isFieldValid";
+import PageField from "./pageField";
 import VirtualElement from "./virtualElement";
 
 function createElement(tagName: string, classList: string[], children?: HTMLElement[] | string): HTMLElement {
@@ -17,14 +18,14 @@ function createElement(tagName: string, classList: string[], children?: HTMLElem
     return el as HTMLElement;
 }
 
-export default class PageElement extends VirtualElement<HTMLSelectElement> {
+export default class PageElement<OutputType> extends VirtualElement<HTMLSelectElement> {
 
     public title: string;
     public name: string;
     public showReturnButton: boolean;
     public index: number;
 
-    private fields: Array<PageField>;
+    private fields: Array<PageField<any>>;
 
     private nextBtn: HTMLElement;
     private backBtn: HTMLElement;
@@ -34,11 +35,14 @@ export default class PageElement extends VirtualElement<HTMLSelectElement> {
         pageIndex: number,
         name: string, 
         title: string, 
-        fields: PageField[] = [],
+        fields: PageField<any>[] = [],
         showReturnButton: boolean = true,
         classes: string[] = [],
         attributes: any = {}
     ) {
+        if (pageIndex === 1) {
+            classes.push('page-focused');
+        }
         classes.push('page');
         super('SECTION', classes, attributes);
         this.index = pageIndex;
@@ -49,20 +53,34 @@ export default class PageElement extends VirtualElement<HTMLSelectElement> {
         this.setAttribute('page-index', String(this.index));
     }
 
-    public addField(field: PageField) {
+
+    /**
+     * Adds a field to the page
+     * @param field The field to add
+     */
+    public addField(field: PageField<any>) {
         this.fields.push(field);
     }
 
-    public getField(name: string): PageField {
+    /**
+     * 
+     * @param name The name of the field to search for
+     * @returns The found field or null
+     */
+    public getField<T extends PageField<any>>(name: string): T {
         for (let field of this.fields) {
             if (field.name === name) {
-                return field;
+                return field as T;
             }
         }
         return null;
     }
 
-    public validate(): IsFieldValid[] {
+    /**
+     * Validates all the fields
+     * @returns Array containing all the fields validation result
+     */
+    public validate(): ValidationResult[] {
         const stack = [];
 
         for (let field of this.fields) {
@@ -123,7 +141,7 @@ export default class PageElement extends VirtualElement<HTMLSelectElement> {
     }
 
     override afterElementBuilt() {
-        const element = this.getElement();
+        const element = this.getDomElement();
 
         for (let field of this.fields) {
             field.buildTo(this.fieldContainer);
@@ -140,7 +158,7 @@ export default class PageElement extends VirtualElement<HTMLSelectElement> {
     }
 
     /**
-     * @returns The reason of the validation or null if there isn't none
+     * @returns The reason of the first validation error or strict null if there isn't one
      */
     public getValidationError(): string {
         const validation = this.validate();
@@ -150,6 +168,27 @@ export default class PageElement extends VirtualElement<HTMLSelectElement> {
             }
         }
         return null;
+    }
+
+    /**
+     * Builds and return the output object as OutputType.
+     * The properties names are the fields names, and the values
+     * are the fields output return.
+     * @returns The output object.
+     */
+    public getOutput(): OutputType {
+        const output = {}
+        for (const field of this.fields) {
+            const validation = field.validate();
+            if (!validation.valid) {
+                throw new Error(`All fields must be in a valid state!` +
+                ` Field "${field.name}" is not valid: "${validation.invalidReason}".`);
+            }
+
+            output[field.name] = field.getOutputValue();
+        }
+
+        return output as OutputType;
     }
 
 }

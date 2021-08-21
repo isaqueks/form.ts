@@ -1,54 +1,74 @@
+import ValidationResult from "./isFieldValid";
 import VirtualElement from "./virtualElement";
 
-export interface IsFieldValid {
-    valid: boolean;
-    invalidReason: string;
-}
-
-export interface ValidateFieldFunction {
-    (inputValue: string, element?: HTMLInputElement): IsFieldValid;
-}
 
 export interface EventListener {
     (event: Event);
 }
 
-export default class PageField extends VirtualElement<HTMLInputElement> {
+export default abstract class PageField<OutputType> extends VirtualElement<HTMLInputElement> {
 
     public name: string;
     public description: string;
-    private validateFn: ValidateFieldFunction;
+    public required: boolean;
+
+    protected afterConstruct() {
+
+    }
 
     constructor(
         name: string, 
         description: string, 
-        validateFn?: ValidateFieldFunction, 
+        required: boolean = true,
         classes: string[] = [], 
         attributes: any = {}
     ) {
         classes.push('field');
         super('INPUT', classes, attributes);
-        this.validateFn = validateFn;
         this.name = name;
         this.description = description;
+        this.required = required;
+        this.afterConstruct();
     }
 
-    public validate(): IsFieldValid {
-        const element = this.getElement();
-        return this.validateFn ? this.validateFn(this.getValue(), element) : {
-            valid: true,
-            invalidReason: null
-        };
+    /**
+     * The default validate function. Should be overwritten, otherwise it will always return true
+     * @returns a valid IsFieldValid if the validation returns ok
+     */
+    protected abstract validateField(): ValidationResult;
+
+    /**
+     * Validates the input value
+     * @returns IsFieldValid telling if the input value is valid or not and why.
+     */
+    public validate(): ValidationResult {
+        return this.validateField();
     }
 
+    /**
+     * 
+     * @returns The input value, but with a type cast. 
+     * It can return a Date on a date input, for example.
+     */
+    public abstract getOutputValue(): OutputType;
+
+    /**
+     * 
+     * @returns The real or virtual value of the input
+     */
     public getValue(): string {
-        const element = this.getElement();
+        const element = this.getDomElement();
         if (!element) {
-            return this.attributes['value'] || null;
+            return this.attributes['value'];
         }
         return element.value;
     }
 
+    /**
+     * 
+     * @param parent The parent element to append it
+     * @returns The created element
+     */
     override createElement(parent: HTMLElement): HTMLInputElement {
         const element = document.createElement(this.tagName) as HTMLInputElement;
 
