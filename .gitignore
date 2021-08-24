@@ -9,3 +9,4 @@ src/shared
 publicTs/index.ts
 publicTs/tests
 publicFiles
+.test
