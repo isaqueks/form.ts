@@ -1,10 +1,10 @@
 node_modules
 coverage
 jest.config.js
-publicTs/tests
+publicTs/testsSuites
 tsconfig.json
 server.ts
 src/shared
 publicTs/index.ts
 publicTs/tests
-public
+publicFiles
