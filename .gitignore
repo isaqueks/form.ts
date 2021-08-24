@@ -3,6 +3,7 @@ coverage
 jest.config.js
 publicTs/testsSuites
 tsconfig.json
+webpack.config.js
 server.ts
 src/shared
 publicTs/index.ts
