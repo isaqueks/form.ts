@@ -6,4 +6,5 @@ tsconfig.json
 server.ts
 src/shared
 publicTs/index.ts
+publicTs/tests
 public
