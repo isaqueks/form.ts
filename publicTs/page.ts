@@ -176,11 +176,11 @@ export default class PageElement<OutputType> extends VirtualElement<HTMLSelectEl
      * are the fields output return.
      * @returns The output object.
      */
-    public getOutput(): OutputType {
+    public getOutput(ignoreRequired: boolean = false): OutputType {
         const output = {}
         for (const field of this.fields) {
             const validation = field.validate();
-            if (!validation.valid) {
+            if (!validation.valid && (field.required || ignoreRequired)) {
                 throw new Error(`All fields must be in a valid state!` +
                 ` Field "${field.name}" is not valid: "${validation.invalidReason}".`);
             }
