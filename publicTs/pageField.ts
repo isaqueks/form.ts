@@ -86,4 +86,19 @@ export default abstract class PageField<OutputType> extends VirtualElement<HTMLI
         return element;
     }
 
+    public setValue(value: string) {
+        this.setAttribute('value', value);
+        const element = this.getDomElement();
+        element ? (element.value = value) : void(0);
+        const newEv: any = {
+            target: element,
+            virtualTarget: this
+        }
+        if (typeof Event != 'undefined') {
+            newEv.__proto__ = new Event('input');
+        }
+
+        this.fireEvent('input', newEv);
+    }
+
 }
