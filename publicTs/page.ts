@@ -25,7 +25,7 @@ export default class PageElement<OutputType> extends VirtualElement<HTMLSelectEl
     public showReturnButton: boolean;
     public index: number;
 
-    private fields: Array<PageField<any>>;
+    protected fields: Array<PageField<any>>;
 
     private nextBtn: HTMLElement;
     private backBtn: HTMLElement;
@@ -53,6 +53,13 @@ export default class PageElement<OutputType> extends VirtualElement<HTMLSelectEl
         this.setAttribute('page-index', String(this.index));
     }
 
+    /**
+     * 
+     * @returns All the children fields
+     */
+    public getFields(): Array<PageField<any>> {
+        return this.fields || [];
+    }
 
     /**
      * Adds a field to the page
