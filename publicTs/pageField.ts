@@ -28,6 +28,9 @@ export default abstract class PageField<OutputType> extends VirtualElement<HTMLI
         this.name = name;
         this.description = description;
         this.required = required;
+        if (this.required) {
+            this.setAttribute('required', 'true');
+        }
         this.afterConstruct();
     }
 
