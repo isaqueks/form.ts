@@ -77,6 +77,9 @@ export default abstract class PageField<OutputType> extends VirtualElement<HTMLI
 
         const container = document.createElement('div');
         container.classList.add('field-element-container');
+        if (this.required) {
+            container.classList.add('field-element-container-required');
+        }
         
         const fieldDescription = document.createElement('div');
         fieldDescription.classList.add('field-description');
